@@ -66,6 +66,8 @@ const config = {
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
+          blogSidebarTitle: '全部博文',
+          blogSidebarCount: 'ALL',
         },
         pages: {
           path: 'src/pages',
