@@ -1,0 +1,667 @@
+---
+sidebar_position: 4
+---
+
+# Docker
+
+## docker安装与命令
+
+[docker官网](https://docs.docker.com/get-docker/)，[镜像地址](https://hub.docker.com/)
+
+* 镜像(lmage)：面向Docker的只读模板
+* 容器(Container)：镜像的运行实例
+* 仓库(Registry)：存储镜像的服务器
+
+以下操作基本Ubuntu20
+
+参考地址：
+
+[CentOS Linux停止维护后如何应对？](https://help.aliyun.com/document_detail/347584.html)
+
+[Ubuntu 系统如何使用 root 用户登录实例？](https://cloud.tencent.com/document/product/1207/44569#ubuntu-.E7.B3.BB.E7.BB.9F.E5.A6.82.E4.BD.95.E4.BD.BF.E7.94.A8-root-.E7.94.A8.E6.88.B7.E7.99.BB.E5.BD.95.E5.AE.9E.E4.BE.8B.EF.BC.9F)
+
+[ubuntu安装docker](https://docs.docker.com/engine/install/ubuntu/)
+
+[centos安装docker](https://docs.docker.com/engine/install/centos/)
+
+```
+# 将当前用户加入docker组
+sudo gpasswd -a ${USER} docker
+
+# 切换到指定用户
+su root/ubuntu/...
+```
+
+[获取docker的加速地址](https://cr.console.aliyun.com/cn-qingdao/instances/mirrors)
+
+<details>
+<summary>docker常用命令</summary>
+
+```
+1.docker images // 查看镜像
+
+2.docker run 镜像名称   // 生成一个正在运行的容器实例
+
+3.docker stop 容器名称   // 停止容器
+
+4.docker rm 容器名称  // 删除容器
+
+5.docker start 容器名称  // 启动容器
+
+6.docker restart 容器名称  //重启容器
+
+7.docker rmi 镜像名称  // 删除镜像
+
+8.docker exec -it 容器名称 /bin/bash  // 进入容器
+
+9.docker ps  // 显示正在运行的所有容器
+
+10.docker ps -a  // 显示所有容器（包括已经停止的）
+
+11.docker pull 镜像名称:版本号  // 拉取镜像
+
+12.docker rm -f $(docker ps -qa) //删除全部容器
+
+docker image prune -f -a //删除所有不使用的镜像
+
+Ctrl + p + q //容器不停止退出
+exit //容器停止退出
+
+容器缺少基础命令安装
+apt-get update
+apt-get install vim
+```
+
+</details>
+
+## Nginx
+
+方式一：直接启动-不建议
+
+```
+docker pull nginx:1.21.6
+docker run --name nginx-test -p 8080:80 -d nginx:1.21.6
+```
+
+访问`http://ip:8080`如下（服务器防火墙开放8080测试）
+
+![image-20220821163849637](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208211638741.png!blog.guiyexing)
+
+方式二：挂载数据卷方式
+
+进入方式一启动的容器
+
+```
+docker exec -it 容器名称(或id) /bin/bash
+```
+
+![image-20220821164318646](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208211643679.png!blog.guiyexing)
+
+将以下两种默认配置拷贝备用，或直接使用以下配置
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<details>
+<summary>nginx默认配置</summary>
+
+<Tabs
+  defaultValue="Nginx总配置文件"
+  values={[
+    { label: 'Nginx总配置文件', value: 'Nginx总配置文件', },
+    { label: '子配置文件', value: '子配置文件', },
+  ]
+}>
+<TabItem value="Nginx总配置文件">
+
+```markdown title="/etc/nginx/nginx.conf"
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+```
+
+</TabItem>
+<TabItem value="子配置文件">
+
+```markdown title="/etc/nginx/conf.d/default.conf"
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+</details>
+
+开始配置
+
+```
+cd ~
+mkdir nginx && cd nginx
+# 准备静态文件
+mkdir www
+echo 'hello'>>www/index.html
+# 配置文件夹
+mkdir conf/conf.d -p
+cd conf/conf.d
+# 配置子配置文件-粘贴/etc/nginx/conf.d/default.conf
+vim default.conf
+# 配置Nginx总配置文件-粘贴/etc/nginx/nginx.conf
+# 进入conf
+cd ..
+vim nginx.conf
+
+# 进入~/nginx执行命令->
+docker run -id \
+-p 80:80 \
+--name nginxDefault \
+-v $PWD/conf/conf.d/:/etc/nginx/conf.d/ \
+-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v $PWD/www/:/usr/share/nginx/html/ \
+-v $PWD/logs/:/var/log/nginx/ \
+nginx:1.21.6
+```
+
+![image-20220821172312260](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208211723310.png!blog.guiyexing)
+
+修改`/home/ubuntu/nginx/www/index.html`，查看变化
+
+## 数据卷
+
+* docker容器删除后,在容器中产生的数据还在吗?
+* docker容器和外部机器可以直接交换文件吗?
+* 容器之间想要进行数据交换该怎么解决?
+
+数据卷是宿主机中的一个目录或文件，当容器目录和数据卷目录绑定后，对方的修改会立即同步，一个数据卷可以被多个容器同时挂载，一个容器也可以挂载多个数据卷。
+
+**数据卷的作用**：
+
+* 容器数据持久化
+* 外部机器和容器间接通信
+* 容器之间数据交换
+
+注意：
+
+* **在启动容器时宿主机数据卷数据会同步到新启动的容器中**
+* 目录必须时绝对路径
+* 如果目录不存在会自动创建
+
+以上的nginx方式2就是对数据卷的实践，只需要将~/nginx/html内的数据修改容器会自动同步数据。
+
+## mysql
+
+```
+docker pull mysql:8.0
+# 当前用户ubuntu工作目录/home/ubuntu存储mysql数据信息
+cd ~
+mkdir mysql && cd mysql
+# 路径说明
+# /etc/mysql/conf.d	mysql配置文件路径
+# /logs				mysql的日志目录
+# /var/lib/mysql	mysql的数据库文件目录
+# 参数说明
+# -i启动交互式容器
+# -d后台运行
+# -p端口映射
+# -v卷挂载
+# -e 环境配置
+# --name容器名字
+
+docker run -id \
+-p 3306:3306 \
+--name mysql80 \
+-v $PWD/conf/:/etc/mysql/conf.d/ \
+-v $PWD/logs/:/logs/ \
+-v $PWD/data/:/var/lib/mysql/ \
+-e MYSQL_ROOT_PASSWORD=654321 \
+mysql:8.0
+```
+
+进入容器
+
+```
+docker exec -it mysql80 /bin/bash  // 进入容器
+```
+
+mysql登录与操作
+
+```
+# 登录mysql-密码:654321
+mysql -u root -p
+# 查看数据库
+show databases;
+create database users;
+
+# 查看用户信息
+select host,user,plugin from mysql.user;
+
+# 查看用户名root的用户信息-两个root用户
+select host,user from mysql.user where user="root";
+```
+
+%允许来自任何ip的连接、localhost允许本机的连接
+
+![image-20220822101404498](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221014610.png!blog.guiyexing)
+
+远程需在防火墙添加规则放行3306
+
+`caching_sha2_password`是8.0默认的认证插件，必须使用支持此插件的客户端版本，或修改插件认证为客户端支持的插件，如：
+
+```
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES; // 刷新权限
+```
+
+此时使用mysql_native_password认证的Navicat就可以使用123456连接了，在容器内扔使用654321连接
+
+![image-20220822102005382](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221023196.png!blog.guiyexing)
+
+## redis
+
+```
+docker pull redis:6.2.6
+```
+
+history命令可以看到所有历史命令,直接启动redis容器密码可以被查看到，所以可以把密码先存起来
+
+```
+vim /etc/profile
+REDIS_PASSWORD=123456
+# 刷新环境变量
+source /etc/profile
+# 生成redis容器实例
+docker run -id --name redis626 -p 6379:6379 redis:6.2.6 --requirepass $REDIS_PASSWORD
+# 创建好以后删除配置再刷新就不会泄露了
+```
+
+部分历史命令如下
+
+![image-20220822104136373](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221041425.png!blog.guiyexing)
+
+防火墙放开6379,然后使用客户端软件连接
+
+## Docker镜像原理
+
+window操作系统组成部分：
+
+* 进程调度子系统
+* 进程通信子系统
+* 内存管理子系统
+* 设备管理子系统
+* 网络通信子系统
+* 作业控制子系统
+* 文件管理子系统
+
+Linux的文件系统由bootfs和rootfs两部分组成。fs是file System的简写，bootfs包含bootloader(引导加载程序)和kernel (内核)。rootfs是root文件系统，包含的就是典型Linux系统中的`/dev，/proc，/bin，/etc`等标准目录与文件。不同的linux发行版，bootfs基本一样，而rootfs不同，如ubuntu与centos等。
+
+Docker镜像原理：
+
+docker镜像是由特殊的文件叠加而成，最底端是bootfs，当我们启动了一个linux的操作系统，在上面安装了一个docker，linux启动的时候要把内核加载起来，而docker的镜像启动的时候，也需要加载内核bootfs，但不需要再次加载了，**使用宿主机的bootfs**，第二层是root文件系统roots称为base image，然后再往上可以叠加其他的镜像文件
+
+当从一个镜像启动容器时，Docker会在最顶层加载一个读写文件系统作为容器。
+
+Docker镜像本质是一个**分层文件系统**
+
+## Docker镜像制作
+
+容器转镜像：
+
+```
+docker commit 容器id 镜像名称:版本号
+```
+
+把容器转成镜像后，再把镜像转成压缩文件，这样就可以直接把压缩文件发给测试人员，测试人员把镜像还原成容器，就可以直接测试了。镜像不可以直接传输，只能转变为压缩文件才能传输。
+
+镜像转为压缩文件：
+
+```
+docker save -o 压缩文件名称 镜像名称:版本号
+```
+
+压缩文件转镜像：
+
+```
+docker load -i 压缩文件名称
+```
+
+---
+
+以nginx容器为例：
+
+生成镜像：
+
+```
+docker commit nginxDefault myweb:1.0.0
+```
+
+![image-20220822164220239](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221642301.png!blog.guiyexing)
+
+镜像转为压缩文件：
+
+```
+docker save -o myWeb.tar myweb:1.0.0
+```
+
+![image-20220822164411347](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221644464.png!blog.guiyexing)
+
+假装这是一个新的环境，在根目录存放了收到的压缩包，可以提前删除我们无用的容器和镜像
+
+```
+docker rmi f4 #删除刚创建的镜像
+```
+
+将收到的压缩包转镜像
+
+```
+docker load -i myWeb.tar
+docker images # 镜像查看myweb:1.0.0恢复
+```
+
+注意：数据卷挂载的文件，不会连同一起打包成压缩文件
+
+如果不使用挂载卷直接启动，访问得到的是nginx默认的首页
+
+```
+docker run --name web1.0.0 -id -p 8080:80 myweb:1.0.0
+```
+
+## dockerfile
+
+dockerfle本质上是一个文本文件，包含了一条条的指令，是用来制作镜像的。每一条指令构建一层镜像，基于基础镜像，最终构建出一个新的镜像，对于开发员，dockerfile可以为开发团队提供一个完全一致的开发环境。对于运维人员，在部署时，可以实现应用的无缝移植。
+
+常用的dockerfile关键字：
+
+| 指令        | 描述                                                   |
+| ----------- | ------------------------------------------------------ |
+| FROM        | 构建新镜像是基于哪个镜像                               |
+| MAINTAINER  | 镜像维护者姓名或邮箱地址                               |
+| RUN         | 构建镜像时运行的Shell命令                              |
+| COPY        | 拷贝文件或目录到镜像中                                 |
+| ENV         | 设置环境变量                                           |
+| USER        | 为RUN、CMD和ENTRYPOINT执行命令指定运行用户             |
+| EXPOSE      | 声明容器运行的服务端口                                 |
+| HEALTHCHECK | 容器中服务健康检查                                     |
+| WORKDIR     | 为RUN、CMD、ENTRYPOINT、COPY和ADD设置工作目录          |
+| ENTRYPOINT  | 运行容器时执行，如果有多个ENTRYPOINT指令，最后一个生效 |
+| CMD         | 运行容器时执行，如果有多个CMD指令，最后一个生效        |
+
+### 定制nginx镜像
+
+```
+# 当前用户是ubuntu-工作目录/home/ubuntu
+mkdir nginxtest
+cd nginxtest
+vim webtest_dockerfile
+---
+FROM nginx:1.21.6
+RUN echo '<h1>hello</h1>' > /usr/share/nginx/html/index.html
+---
+docker build -f ./webtest_dockerfile -t webtest:1.0.0 .
+docker run -id -p 8080:80 webtest:1.0.0
+```
+
+![image-20220822165537253](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221655352.png!blog.guiyexing)
+
+### 定制Node镜像
+
+1. 本地创建express项目，初始化package.json
+   ```
+   npm init -y
+   npm i express
+   ```
+
+   ```json title="package.json"
+   {
+     "name": "mytest",
+     "version": "1.0.0",
+     "description": "",
+     "main": "index.js",
+     "type": "module",
+     "scripts": {
+       "start": "node app.js"
+     },
+     "keywords": [],
+     "author": "",
+     "license": "ISC",
+     "dependencies": {
+       "express": "^4.18.1"
+     }
+   }
+   ```
+
+1. 入口文件app
+
+   ```js title="app.js"
+   import express from "express";
+   const app = express()
+   app.get('/hello', function (req, res) {
+     res.send({
+       code:10000,
+       data:{
+           records:[]
+       },
+       msg:'查询成功',
+       success:true
+     })
+   })
+   app.listen(3000)
+   ```
+
+2. 创建Dockerfile文件
+   ```js title="Dockerfile"
+   FROM node:16-alpine
+   ADD . /app/
+   WORKDIR /app
+   RUN npm install
+   EXPOSE 3000
+   CMD ["npm","start"]
+   ```
+
+3. 除node_modules拷贝至服务器
+
+   进入项目目录可直接执行 `docker build -t mynode:1.0.0 .`
+
+4. 启动镜像
+
+   `docker run -id -p 8080:3000 mynode:1.0.0`
+
+6. 访问8080端口
+   ![image-20220822171615505](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221716567.png!blog.guiyexing)
+
+### 定制PM2镜像
+
+基于本地创建express项目进行稍微改造
+
+1. 创建process.yml
+   ```
+   apps:
+     - script: app.js
+       instances: 2
+       watch: true
+       env:
+         NODE_ENV: production
+   ```
+
+2. 创建.dockerignore
+   ```
+   node_modules
+   ```
+
+3. 修改Dockerfile
+   ```
+   FROM keymetrics/pm2:latest-alpine
+   WORKDIR /usr/src/app
+   ADD . /usr/src/app
+   RUN npm config set registry https://registry.npm.taobao.org/ && \
+       npm i
+   EXPOSE 3000
+   # 运行 pm2 启动打包之后的项目, pm2在容器中运行需要用 pm2-runtime 命令
+   CMD [ "pm2-runtime","start","process.yml" ]
+   ```
+
+4. 增加路由
+   ```js title="app.js"
+   app.get('/', function (req, res) {
+     res.send('hello pm2')
+   })
+   ```
+
+4. 除node_modules拷贝至服务器
+
+   进入项目目录可直接执行 `docker build -t mypm2:1.0.0 .`
+
+5. 启动镜像
+
+   `docker run -id -p 8080:3000 mypm2:1.0.0`
+
+7. 访问8080端口得到hello pm2
+   ![image-20220822172316287](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221723355.png!blog.guiyexing)
+
+## Compose
+
+Compose项目是Docker官方的开源项目，负责实现对Docker容器集群的快速编排。
+
+```
+# 安装compose
+sudo curl -L https://download.fastgit.org/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+# 将可执行权限应用于二进制文件：
+chmod +x /usr/local/bin/docker-compose
+# 测试
+docker-compose -v
+# 卸载
+sudo rm /usr/local/bin/docker-compose
+```
+
+## MongoDB
+
+使用Compose同时安装mongo和客户端
+
+```
+cd ~
+mkdir -p mongo/data # 数据库保存文件夹
+```
+
+任意位置创建docker-compose.yml
+
+```
+mkdir mongoPro && cd mongoPro
+vim docker-compose.yml
+```
+
+配置文件
+
+```
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:5.0.6
+    container_name: mongo506
+    restart: always
+    ports:
+      - 27017:27017
+    command: --auth
+    volumes:
+      - ~/mongo/data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: pism
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: 123456
+      ME_CONFIG_MONGODB_SERVER: mongo506
+```
+
+在docker-compose.yml所在目录执行以下命令
+
+```
+docker-compose up -d
+```
+
+访问ip:8081，就可以看到mongodb管理ui
+
+![image-20220822173937621](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208221739763.png!blog.guiyexing)
+
+停止容器，在mongoPro目录下
+
+```
+docker-compose down
+```

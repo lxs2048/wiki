@@ -1,0 +1,26 @@
+.custom-answer-container{
+    width: 100%;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    .input-answer-box{
+        background-color: var(--ifm-color-primary);
+        display: flex;
+        #input-form-box{
+            flex:1;
+        }
+        .show-answer-btn{
+            width: 50px;
+            text-align: center;
+            color: #fff;
+            cursor: pointer;
+        }
+    }
+    .custom-answer-content{
+        padding: 5px;
+        border: 1px solid var(--ifm-color-primary);
+        :global(.theme-code-block){
+            margin-bottom: 0px !important;
+        }
+    }
+}

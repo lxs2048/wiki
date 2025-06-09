@@ -1,0 +1,180 @@
+---
+sidebar_position: 2
+---
+
+# 格式化上下文
+
+网络热门面试题：什么情况下触发BFC？
+
+网络答案如下：
+
+* 根元素(html)
+* float属性不为none
+* position为absolute或fixed
+* display为inline-block, table-cell,table-caption, flex, inline-flex
+* overflow不为visible
+
+首先，这个问题本身就是错误的
+
+BFC全称块格式化上下文（Block Formatting Context），前面的动词应该是establish(创建设立)，和触发没有关系，触发是trigger，在标准里也没有和bfc连用过
+
+css排版布局主要使用的就是box盒模型和Formatting Context， box本身放在什么位置就需要一个上下文，Formatting有规制整理的意思，需要的上下文就叫Formatting Context。
+
+css标准里面明确讲到Formatting有4种
+
+正常流：
+
+* block formatting context
+  block container => block-level box
+* inline formatting context
+  line box => inline-level box
+
+弹性布局：
+
+* flex formatting context
+  flex container => flex item
+
+网格布局：
+
+* grid formatting context
+  grid container => grid items
+
+CSS2.1给block container中的block container取了一个名字
+
+```
+block container + block-level box => block box => block
+```
+
+BFC是元素创建的，但是它只是给排版用的信息，并不是元素本身，其难点在于和其他特性的互动，比如margin，一个容器是否包含内部元素的margin等
+
+float浮动到父元素的左边或右边是不管父容器是否创建了BFC
+
+position定位的起点依赖`containing block`，和BFC没有任何关系只和position的属性有关
+
+![image-20220813180030951](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181643865.png!blog.guiyexing)
+
+block在overflow为visible的时候是不产生BFC的，这是唯一一个特例，[进入MDN查看以上三个示例](https://developer.mozilla.org/zh-CN/docs/Web/Guide/CSS/Block_formatting_context)
+
+通过案例了解格式化上下文
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+<details>
+  <summary>案例资源</summary>
+  <Tabs>
+    <TabItem value="CSS" label="CSS" default>
+      <CodeBlock
+        language="css"
+        title="src/components/FormattingContext/styles.module.css"
+        showLineNumbers>
+{`#margin {
+    margin: 20px;
+    width: 500px;
+    outline: solid 20px rgba(0, 255, 0, 0.2);
+}
+#bfc {
+    width: 500px;
+    overflow: visible;
+    outline: solid 20px rgba(0, 0, 255, 0.2);
+    overflow: hidden;
+    margin: 20px;
+}
+#containing-block {
+    width: 400px;
+    overflow: visible;
+    outline: solid 20px rgba(255, 255, 0, 0.2);
+    margin: 20px;
+    position: relative;
+}
+#parent-box {
+    width: 200px;
+    outline: solid 1px green;
+}
+#inner1 {
+    float: right;
+    background-color: lightgreen;
+    width: 50px;
+    height: 50px;
+}
+#inner2 {
+    position: absolute;
+    right: 0px;
+    background-color: lightblue;
+    width: 50px;
+    height: 50px;
+}
+#inner3 {
+    margin: 30px;
+    background-color: red;
+    outline: solid 30px rgba(255, 0, 0, 0.2);
+    width: 50px;
+    height: 50px;
+}`}
+      </CodeBlock>
+    </TabItem>
+    <TabItem value="JavaScript" label="JavaScript">
+      <CodeBlock
+        language="jsx"
+        title="/src/components/FormattingContext/index.js"
+        showLineNumbers>
+{`function FormattingContext() {
+  return (
+    <>
+      <div id={styles.margin}>margin:20px;</div>
+      <div id={styles.bfc}>
+        <div id={styles['containing-block']}>
+          <div id={styles['parent-box']}>
+            <div id={styles.inner1}>
+              float:
+              right
+            </div>
+            <div id={styles.inner2}>
+              position:
+              absolute
+            </div>
+            <div id={styles.inner3}>
+              margin:
+              30px
+            </div>
+            parent box
+          </div>
+          containing block
+        </div>
+        block formatting context/margin:20px
+      </div>
+    </>
+  )
+}`}
+      </CodeBlock>
+    </TabItem>
+  </Tabs>
+</details>
+
+import FormattingContext,{FormattingContextBase,FormattingContextFloat,FormattingContextPosition} from '@site/src/components/FormattingContext';
+
+使用基础的盒模型，可以观察到[外边距重叠](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Box_Model/Mastering_margin_collapsing)，containing block的marginTop相对与block formatting context
+
+<FormattingContextBase />
+
+在parent box中添加一个向右浮动的子元素，parent box的overflow默认为visible，浮动脱离了文档流，所以parent box仅包含了内容，不包含浮动。所以在创建包含浮动元素的 BFC 时，通常的做法是设置父元素 overflow: auto 或者其它除默认的 overflow: visible 以外的值
+
+<FormattingContextFloat />
+
+增加一个position为absolute的元素，父元素parent box未设置position，containing block设置了relative，所以相对其定位
+
+<FormattingContextPosition />
+
+在增加了一个margin为30px的子元素，marginLeft单独撑开，而marginTop和父元素parent box的marginTop共同作用使parent box下移10px
+
+<FormattingContext />
+
+此外，当前文档中的几个案例都有marginTop为20px，和p元素默认的20px重叠，之所以现在有空隙是因为给每个组件包了一个容器设置了样式
+
+```js
+#formatting-custom-box{
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+```

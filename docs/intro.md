@@ -1,7 +1,7 @@
 ---
-sidebar_position: 1
+sidebar_position: 0
 slug: /
-title: 互联网冲浪指南
+title: 冲浪指南
 ---
 
 # Tutorial Intro

@@ -39,6 +39,10 @@ const config = {
     locales: ['zh-cn'],
   },
 
+  plugins: [
+    'docusaurus-plugin-sass',
+    'plugin-image-zoom'
+  ],
   presets: [
     [
       'classic',

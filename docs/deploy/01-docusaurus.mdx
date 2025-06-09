@@ -1,0 +1,376 @@
+---
+sidebar_position: 1
+---
+
+# 文档模板
+
+docusaurus官方文档：https://docusaurus.io/docs
+
+## 部署项目到vercel
+
+一、创建本地项目并提交到github
+
+二、git登录vercel首页Create a New Project
+
+![image-20220714235845761](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645786.png!blog.guiyexing)
+
+三、查找项目并Import
+
+![image-20220715000152509](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645788.png!blog.guiyexing)
+
+四、授权
+
+可能无法查找到项目，点击configure Github App进入github授权
+
+![image-20220715000459746](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645793.png!blog.guiyexing)
+
+五、导入项目
+
+授权后进入页面，点击Import导入项目
+
+![image-20220715000540217](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645794.png!blog.guiyexing)
+
+六、部署
+
+直接Deploy部署
+
+![image-20220715000626211](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645795.png!blog.guiyexing)
+
+七、部署完成
+
+![image-20220715000817851](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645801.png!blog.guiyexing)
+
+点击图片访问站点，随后可点击Dashboard进入工作台进行其他配置
+
+## 配置自定义域名
+
+进入项目设置
+
+![image-20220715001311845](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645221.png!blog.guiyexing)
+
+添加自己的domains，不添加使用vercel默认分配的地址
+
+![image-20220715001359907](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645223.png!blog.guiyexing)
+
+提示如下
+
+![image-20220714145940133](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645826.png!blog.guiyexing)
+
+在自己的域名管理中添加如下记录
+
+![image-20220714115946113](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645832.png!blog.guiyexing)
+
+添加成功，显示如下
+
+![image-20220714150039828](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645850.png!blog.guiyexing)
+
+访问地址
+
+![image-20220715001441819](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181645856.png!blog.guiyexing)
+
+## 本地开发参考
+
+### blog
+
+Use a `<!--` `truncate` `-->` comment to limit blog post size in the list view.
+
+博客内位于其后的内容在/blog下使用`read more`定位到具体位置查看详情
+
+默认10条记录分页，可通过postsPerPage配置显示全部或其他条数来分页
+
+### docs
+
+docs新增目录结构如下
+
+```
+Notes
+├── docs
+│   ├── deploy
+│   │   ├── img
+│   │   ├── _category_.json
+│   │   └── 01-docusaurus.md
+```
+
+deploy目录将写有关打包部署的文档
+
+`_category_.json`配置侧边栏信息
+
+```json title="_category_.json"
+{
+  "label": "部署",
+  "position": 0,
+  "link": {
+    "type": "generated-index"
+  }
+}
+```
+
+01-数字标识仅用于本地开发排序，不会作为展示，且支持多种格式
+
+`01-docusaurus.md`中可以引用img中的图片，建议直接定义1级标题，否则会以文件名为标题
+
+```markdown
+---
+sidebar_position: 0
+---
+
+# 文档模板
+
+...
+```
+
+在`docusaurus.config.js`中themeConfig.navbar.items下类型为'doc'的配置项里
+
+配置docId的默认地址，如下：
+
+`docId: '/category/部署'`
+
+### mdx
+
+将文件的后缀改为.mdx就可以使用以下案例
+
+**详细信息展现元素**
+
+<details>
+  <summary>The Details disclosure element</summary>
+  <p>https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details</p>
+</details>
+
+
+**Tabs**与**CodeBlock**
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+<Tabs>
+  <TabItem value="apple" label="苹果" default>
+    这是个苹果 🍎
+    <CodeBlock
+        language="jsx"
+        title="/src/components/HelloCodeTitle.js"
+        showLineNumbers>
+        {`function HelloCodeTitle(props) {
+  return <h1>你好，{props.name}</h1>;
+}`}
+    </CodeBlock>
+  </TabItem>
+  <TabItem value="orange" label="橙子">
+    这是个橙子 🍊
+  </TabItem>
+  <TabItem value="banana" label="香蕉">
+    这是个香蕉 🍌
+  </TabItem>
+</Tabs>
+
+组合使用，示例代码如下
+
+````markdown
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs
+  defaultValue="js"
+  values={[
+    { label: 'JavaScript', value: 'js', },
+    { label: 'Python', value: 'py', },
+    { label: 'Java', value: 'java', },
+  ]
+}>
+<TabItem value="js">
+
+```js
+function helloWorld() {
+  console.log('Hello, world!');
+}
+```
+
+</TabItem>
+<TabItem value="py">
+
+```py
+def hello_world():
+  print 'Hello, world!'
+```
+
+</TabItem>
+<TabItem value="java">
+
+```java
+class HelloWorld {
+  public static void main(String args[]) {
+    System.out.println("Hello, World");
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+````
+
+这里注意codeblock里面使用` ``` `的方法可以参考
+
+效果演示
+
+<details>
+<summary>组合示例</summary>
+
+<Tabs
+  defaultValue="js"
+  values={[
+    { label: 'JavaScript', value: 'js', },
+    { label: 'Python', value: 'py', },
+    { label: 'Java', value: 'java', },
+  ]
+}>
+<TabItem value="js">
+
+```js
+function helloWorld() {
+  console.log('Hello, world!');
+}
+```
+
+</TabItem>
+<TabItem value="py">
+
+```py
+def hello_world():
+  print 'Hello, world!'
+```
+
+</TabItem>
+<TabItem value="java">
+
+```java
+class HelloWorld {
+  public static void main(String args[]) {
+    System.out.println("Hello, World");
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+</details>
+
+### draft
+
+plugin-content-docs=>[草稿配置](https://docusaurus.io/zh-CN/docs/api/plugins/@docusaurus/plugin-content-docs#draft)
+
+一个布尔值，表明文档处于未完成状态。 文档草稿只会在开发模式下显示。
+
+### 国际化
+
+配置`docusaurus.config.js`
+
+默认中文翻译为英文(鸡肋，学习使用)，[参照](https://docusaurus.io/zh-CN/docs/i18n/tutorial#configure-your-site)
+
+```json
+i18n: {
+  defaultLocale: 'zh-CN',
+  locales: ['zh-CN','en'],
+  localeConfigs:{
+    en:{
+      label:'English'
+    },
+    'zh-CN':{
+      label:'中文'
+    }
+  }
+},
+//items配置导航菜单
+{
+  type: 'localeDropdown',
+  position: 'right',
+},
+```
+
+翻译插件数据
+
+```
+npm run write-translations -- --locale en
+```
+
+使用你所选择的语言，以开发模式启动本地化站点
+
+```
+npm run start -- --locale en
+```
+
+### 使用环境变量
+
+https://docusaurus.io/zh-CN/docs/deployment#using-environment-variables
+
+把可能敏感的信息放在环境变量中的做法很常见。 然而，在典型的 Docusaurus 网站中， docusauurus.config.js 文件是唯一一个可以接触到 Node.js 环境的地方（参见我们的架构概述）。除此之外的所有东西——MDX 页面，React 组件，等等，都处于客户端中，不能直接访问 process 全局变量。 在这种情况下，你可以考虑使用 customFields 将环境变量传递给客户端
+
+### 静态资源存储
+
+参考[PicGo上传文件](/docs/tools/图床)
+
+### mermaidjs画流程图
+
+```js title="src/theme/Mermaid.js"
+import React, { useEffect } from "react";
+import mermaid from "mermaid";
+
+mermaid.initialize({
+    startOnLoad: true
+});
+
+const Mermaid = ({ chart }) => {
+    useEffect(() => {
+        mermaid.contentLoaded();
+    }, []);
+    return <div className="mermaid">{chart}</div>;
+};
+
+export default Mermaid;
+```
+
+画流程图代码
+
+```js
+import Mermaid from '@theme/Mermaid';
+
+<Mermaid chart={`
+    graph LR;
+        A-->B;
+        B-->C;
+        B-->D[plop lanflz eknlzeknfz];
+`}/>
+```
+
+流程效果演示
+
+import Mermaid from '@theme/Mermaid';
+
+<Mermaid chart={`
+    graph LR;
+        A-->B;
+        B-->C;
+        B-->D[plop lanflz eknlzeknfz];
+`}/>
+
+### video player
+
+官方介绍：qier-player 简单易用的 h5 视频播放器，UI 高度可定制化且功能丰富。
+
+代码仓库：[qier-player](https://vortesnail.github.io/qier-player/zh-CN/doc/quick-start)
+
+其他：[简洁，美观，功能强大的react播放器](https://github.com/lgf196/JoL-player)
+
+使用方式
+
+```js
+import QierPlayer from '@theme/QierPlayer';
+
+<QierPlayer />
+```
+
+效果演示
+
+import QierPlayer from '@theme/QierPlayer';
+
+<QierPlayer />

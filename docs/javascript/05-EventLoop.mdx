@@ -1,0 +1,297 @@
+---
+sidebar_position: 5
+---
+
+# 事件循环
+
+## 什么是事件循环
+
+[微任务与 Javascript 运行时环境](https://developer.mozilla.org/zh-CN/docs/Web/API/HTML_DOM_API/Microtask_guide/In_depth)
+
+主线程执行完毕以后，从事件队列中去读取任务队列的过程，我们称之为事件循环(EventLoop)
+
+JS分为同步任务和异步任务:
+
+1. 所有同步任务都在主线程(**JS引擎线程**)上执行，形成一个`执行栈`
+2. 主线程之外，**事件触发线程**管理着一个`任务队列`，只要异步任务有了运行结果，就在`任务队列`之中放一个事件回调
+3. 一旦`执行栈`中的所有同步任务执行完毕(也就是JS引擎线程空闲)，系统就会读取`任务队列`，将可运行的异步任务添加到执行栈中，开始执行
+
+主线程不断重复以上3个步骤...
+
+```js
+//定时器时间为0表示，主线程一有空就立即执行，不是等待0s的含义
+let setTimeoutCallBack = function() {
+  console.log('我是定时器回调');
+};
+let httpCallback = function() {
+  console.log('我是http请求回调');
+}
+// 同步任务
+console.log('我是同步任务1');
+// 异步定时任务
+setTimeout(setTimeoutCallBack,1000);
+// 异步http请求任务
+ajax.get('/info',httpCallback);
+// 同步任务
+console.log('我是同步任务2');
+```
+
+上述代码执行过程：
+
+JS是按照顺序从上往下依次执行的，可以先理解为这段代码时的执行环境就是主线程，也就是也就是当前执行栈
+
+首先，执行`console.log('我是同步任务1')`,接着，执行到`setTimeout`时，会移交给`定时器线程`，通知`定时器线程` 1s 后将 `setTimeoutCallBack` 这个回调交给`事件触发线程`处理，在 1s 后`事件触发线程`会收到 `setTimeoutCallBack` 这个回调并把它加入到`事件触发线程`所管理的事件队列中等待执行，接着，执行http请求，会移交给`异步http请求线程`发送网络请求，请求成功后将 `httpCallback` 这个回调交由事件触发线程处理，低于1s会被优先添加，`事件触发线程`收到 `httpCallback` 这个回调后把它加入到`事件触发线程`所管理的事件队列中等待执行，再接着执行`console.log('我是同步任务2')`至此主线程执行栈中执行完毕，`JS引擎线程`已经空闲，开始向`事件触发线程`发起询问，询问`事件触发线程`的事件队列中是否有需要执行的回调函数，如果有将事件队列中的回调事件加入执行栈中，开始执行回调，如果事件队列中没有回调，`JS引擎线程`会一直发起询问，直到有为止。
+
+浏览器上的所有线程的工作都很单一且独立，非常符合单一原则
+
+定时触发线程只管理定时器且只关注定时不关心结果，定时结束就把回调扔给事件触发线程
+
+异步http请求线程只管理http请求同样不关心结果，请求结束把回调扔给事件触发线程
+
+事件触发线程只关心异步回调加入事件队列
+
+而我们JS引擎线程只会执行执行栈中的事件，执行栈中的代码执行完毕，就会读取事件队列中的事件并添加到执行栈中继续执行，这样反反复复就是我们所谓的**事件循环(Event Loop)**
+
+**图解**
+![002](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181918959.png!blog.guiyexing)
+
+* 执行栈开始顺序执行
+
+* 判断是否为同步，异步则进入异步线程，最终事件回调给事件触发线程的任务队列等待执行，同步继续执行
+
+* 执行栈空，询问任务队列中是否有事件回调
+
+* 任务队列中有事件回调则把回调加入执行栈末尾继续从第一步开始执行
+
+* 任务队列中没有事件回调则不停发起询问
+
+setTimeout实验（2022年2月12日）：
+
+```js
+setTimeout(()=>{
+  console.log('我是定时器回调2');
+},2)
+setTimeout(()=>{
+  console.log('我是定时器回调1');
+},1)
+setTimeout(()=>{
+  console.log('我是定时器回调-1');
+})
+setTimeout(()=>{
+  console.log('我是定时器回调0');
+},0)
+```
+
+* 定时器2永远在0,-1,1之后打印
+* 0,-1,1，这3者的执行顺序和在上下文的位置有关
+
+## 微(宏)任务
+
+### 宏任务(macrotask)
+
+在ECMAScript中，`macrotask`也被称为`task`
+
+我们可以将每次执行栈执行的代码当做是一个宏任务(包括每次从事件队列中获取一个事件回调并放到执行栈中执行)， 每一个宏任务会从头到尾执行完毕，不会执行其他
+
+由于`JS引擎线程`和`GUI渲染线程`是互斥的关系，浏览器为了能够使`宏任务`和`DOM任务`有序的进行，会在一个`宏任务`执行结果后，在下一个`宏任务`执行前，`GUI渲染线程`开始工作，对页面进行渲染
+
+```
+宏任务 -> GUI渲染 -> 宏任务 -> ...
+```
+
+常见的宏任务
+
+- 主代码块
+- setTimeout
+- setInterval
+- setImmediate ()-Node
+- requestAnimationFrame ()-浏览器
+
+### 微任务(microtask)
+
+ES6新引入了Promise标准，同时浏览器实现上多了一个`microtask`微任务概念，在ECMAScript中，`microtask`也被称为`jobs`
+
+我们已经知道`宏任务`结束后，会执行渲染，然后执行下一个`宏任务`， 而微任务可以理解成在当前`宏任务`执行后立即执行的任务
+
+当一个`宏任务`执行完，会在渲染前，将执行期间所产生的所有`微任务`都执行完
+
+```
+宏任务 -> 微任务 -> GUI渲染 -> 宏任务 -> ...
+```
+
+常见微任务
+
+- process.nextTick ()-Node
+- Promise.then()
+- catch
+- finally
+- Object.observe
+- MutationObserver
+- async await
+- ...
+
+`new Promise(() => {}).then()` ，前面的 `new Promise()` 这一部分是一个构造函数，promise本身是同步任务，后面的 `.then()` 才是一个微任务，当前同步任务全部执行完毕后，会在渲染前，将执行期间所产生的所有`微任务`都执行完，`包括微任务产生的微任务`。
+
+```js
+new Promise((resolve) => {
+    console.log(1)
+    resolve()
+    console.log(2)
+}).then(()=>{
+    new Promise(resolve=>{
+        console.log('a')
+        resolve()
+    }).then(()=>{
+        console.log('b')
+    })
+    console.log(3)
+})
+setTimeout(()=>{
+    console.log('c')
+})
+console.log(4)
+// 124a3bc
+```
+
+### 执行示例
+
+找一个空白的页面，在console中输入以下代码
+
+```js
+document.body.style = 'background:black';
+document.body.style = 'background:red';
+document.body.style = 'background:blue';
+document.body.style = 'background:pink';
+```
+
+![demo001](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181918962.gif)
+我们看到上面动图背景直接渲染了粉红色，根据上文里讲浏览器会先执行完一个宏任务，再执行当前执行栈的所有微任务，然后移交GUI渲染，上面四行代码均属于同一次宏任务，全部执行完才会执行渲染，渲染时`GUI线程`会将所有UI改动优化合并，所以视觉上，只会看到页面变成粉红色。
+
+再接着看
+
+```js
+document.body.style = 'background:blue';
+setTimeout(()=>{
+    document.body.style = 'background:black'
+},200)
+```
+
+![demo002](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181918963.gif)
+上述代码中，页面会先卡一下蓝色，再变成黑色背景，页面上写的是200毫秒，可以把它当成0毫秒，因为0毫秒的话由于浏览器渲染太快，录屏不好捕捉，之所以会卡一下蓝色，是因为以上代码属于两次`宏任务`，第一次`宏任务`执行的代码是将背景变成蓝色，然后触发渲染，将页面变成蓝色，再触发第二次宏任务将背景变成黑色。
+
+再来看
+
+```js
+document.body.style = 'background:blue'
+console.log(1);
+Promise.resolve().then(()=>{
+    console.log(2);
+    document.body.style = 'background:pink'
+});
+console.log(3);
+```
+
+![demo003](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181918983.gif)
+控制台输出 1 3 2 , 是因为 promise 对象的 then 方法的回调函数是异步执行，所以 2 最后输出
+页面的背景色直接变成粉色，没有经过蓝色的阶段，是因为，我们在宏任务中将背景设置为蓝色，但在进行渲染前执行了微任务， 在微任务中将背景变成了粉色，然后才执行的渲染
+
+### 微任务宏任务注意点
+
+- 浏览器会先执行一个宏任务，紧接着执行当前执行栈产生的微任务，再进行渲染，然后再执行下一个宏任务
+- **微任务和宏任务不在一个任务队列**
+  - 例如`setTimeout`是一个宏任务，它的事件回调在宏任务队列，`Promise.then()`是一个微任务，它的事件回调在微任务队列，二者并不是一个任务队列
+  - 以Chrome 为例，有关渲染的都是在渲染进程中执行，渲染进程中的任务（DOM树构建，js解析…等等）需要主线程执行的任务都会在主线程中执行，而浏览器维护了一套事件循环机制，主线程上的任务都会放到消息队列中执行，主线程会循环消息队列，并从头部取出任务进行执行，如果执行过程中产生其他任务需要主线程执行的，渲染进程中的其他线程会把该任务塞入到消息队列的尾部，消息队列中的任务都是宏任务
+  - 微任务是如何产生的呢？当执行到script脚本的时候，js引擎会为全局创建一个执行上下文，在该执行上下文中维护了一个微任务队列，当遇到微任务，就会把微任务回调放在微队列中，当所有的js代码执行完毕，在退出全局上下文之前引擎会去检查该队列，有回调就执行，没有就退出执行上下文，这也就是为什么微任务要早于宏任务，也是大家常说的，每个宏任务都有一个微任务队列（由于定时器是浏览器的API，所以定时器是宏任务，在js中遇到定时器会也是放入到浏览器的队列中）
+
+### 图解宏任务和微任务
+
+![003](https://blog-guiyexing.oss-cn-qingdao.aliyuncs.com/blogImg/202208181918982.png!blog.guiyexing)
+
+首先执行一个宏任务，执行结束后判断是否存在微任务，有微任务先执行所有的微任务，再渲染，没有微任务则直接渲染，然后再接着执行下一个宏任务
+
+## 事件循环题目
+
+求输出结果：
+
+```js
+// 1 hello do 4 6 9 8 3 7 5 ha 2
+function test() {
+    console.log(1)
+    setTimeout(function () {  // timer1-1000
+        console.log(2)
+    }, 1000)
+}
+test();
+setTimeout(function () {        // timer2-undefined
+    console.log(3)
+})
+function a() {
+    return new Promise(reslove=>{
+        console.log('do')
+        setTimeout(()=>{            //timer3-200
+            reslove('ha')
+        },200)
+    })
+}
+async function b() {
+    console.log('hello')
+    let ha = await a()
+    console.log(ha)
+}
+b()
+new Promise(function (resolve) {
+    console.log(4)
+    setTimeout(function () {  // timer4-100
+        console.log(5)
+    }, 100)
+    resolve()
+    console.log(6)
+}).then(function () {
+    setTimeout(function () {  // timer5-0
+        console.log(7)
+    }, 0)
+    console.log(8)
+})
+console.log(9)
+```
+
+JS是顺序从上而下执行
+
+执行到test()，test方法为同步，直接执行，`console.log(1)`打印1
+
+test方法中setTimeout为异步宏任务，回调我们把它记做timer1放入宏任务队列
+
+接着执行，test方法下面有一个setTimeout为异步宏任务，回调我们把它记做timer2放入宏任务队列
+
+执行异步方法b，打印hello，同步方式执行a方法，打印do，await后的代码放入到微任务队列中??
+
+接着执行promise，new Promise是同步任务，直接执行，打印4
+
+new Promise里面的setTimeout是异步宏任务，回调我们记做timer4放到宏任务队列，然后执行resolve后的打印6
+
+Promise.then是微任务，放到微任务队列
+
+console.log(9)是同步任务，直接执行，打印9
+
+主线程任务执行完毕，检查微任务队列
+
+开始执行微任务，执行微任务发现有setTimeout是异步宏任务，记做timer5放到宏任务队列
+
+微任务队列中的console.log(8)是同步任务，直接执行，打印8
+
+微任务执行完毕，第一次循环结束
+
+检查宏任务队列，里面有timer1、timer2、timer3、timer4、timer5，四个定时器宏任务，按照定时器延迟时间得到可以执行的顺序，即Event Queue：timer2、timer5、timer4、timer3、timer1，依次拿出放入执行栈末尾执行
+
+执行timer2，console.log(3)为同步任务，直接执行，打印3，检查没有微任务，第二次Event Loop结束
+
+执行timer5，console.log(7)为同步任务，直接执行，打印7，检查没有微任务，第三次Event Loop结束
+
+执行timer4，console.log(5)为同步任务，直接执行，打印5，检查没有微任务，第四次Event Loop结束
+
+执行timer3，执行reslove('ha')后没有同步任务，检查到微任务，执行await后的任务，打印了ha，第四次Event Loop结束
+
+执行timer1，console.log(2)同步任务，直接执行，打印2，检查没有微任务，也没有宏任务，第五次Event Loop结束
+
+结果：`1 hello do 4 6 9 8 3 7 5 ha 2`
+

@@ -1,0 +1,16 @@
+.video-container{
+    width: 100%;
+    box-sizing: border-box;
+}
+.video-inner{
+    width: 100%;
+    /* 9/16 */
+    padding-top: 56.25%;
+    background-color: bisque;
+    position: relative;
+    :global(.qier-player){
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
