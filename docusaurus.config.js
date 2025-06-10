@@ -41,7 +41,6 @@ const config = {
 
   plugins: [
     'docusaurus-plugin-sass',
-    'plugin-image-zoom'
   ],
   presets: [
     [

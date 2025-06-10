@@ -28,3 +28,32 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+
+.markdown > h2 {
+  border-left: var(--ifm-color-primary-dark) 3px solid;
+  padding-left: 10px;
+  line-height: 100%;
+  border-left: var(--ifm-color-primary-dark) 7px solid;
+  border-radius: 1px;
+}
+.markdown > h3 {
+  padding-left: 10px;
+  line-height: 100%;
+  border-left: var(--ifm-color-primary-darker) 4px solid;
+  border-radius: 1px;
+}
+.markdown img {
+  display: block;
+  margin: 1rem auto;
+}
+p {
+  margin: 15px 0 15px 10px;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+/* 徽章居左 */
+.Badges {
+  display: inline-block !important;
+  margin: 0.5rem 0.3rem !important;
+}

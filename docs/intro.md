@@ -2,48 +2,46 @@
 sidebar_position: 0
 slug: /
 title: 冲浪指南
+description: 这是一个共享的知识库(Wiki Database)，内容涉及软件分享，学习笔记(JavaScript,Node,React)，搞机技巧，互联网冲浪技巧等内容。
 ---
 
-# Tutorial Intro
+import ToolTip from "../src/components/tooltip"
+import Highlight from "../src/components/highlight"
 
-Let's discover **Docusaurus in less than 5 minutes**.
+# 冲浪指南
 
-## Getting Started
+<a href="https://github.com/lxs2048/wiki" target="_black">
+<img alt="github" className="Badges" src="https://img.shields.io/github/last-commit/lxs2048/wiki?label=%E4%B8%8A%E6%AC%A1%E6%9B%B4%E6%96%B0&logo=github&style=for-the-badge" width="135px"/>
+</a>
+<br/>
 
-Get started by **creating a new site**.
+> 🚀**本文档持续更新中...**
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+## 🖐 Biography
 
-### What you'll need
+Hi there 👋 This is [格昙知识仓库](https://mp.weixin.qq.com/s/ytNsiyIjCb-URVLY90uSMw) !
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+我们可以一起在这里记录与分享知识!
 
-## Generate a new site
+<div>
+  <span>遇到问题你可以在公众号：</span>
+  <ToolTip content='格格昙'>
+    <Highlight color='#ff6b81'>格格昙</Highlight>
+  </ToolTip>
+  <span>，进行留言。</span>
+</div>
 
-Generate a new Docusaurus site using the **classic template**.
+Have fun!
 
-The classic template will automatically be added to your project after you run the command:
+## ✨ Mini Program
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+个人爱好，写写小程序，目前在线有以下
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+矢量头像：矢量风格头像的生成器，自定义颜色背景表情装饰
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+![矢量头像](https://cutecode.oss-cn-beijing.aliyuncs.com/general/sltx.jpg)
 
-## Start your site
+王者工厂：王者战力查询工具，修改王者荣耀低分战区，灵宝集市互换年糕
 
-Run the development server:
+![王者工厂](https://cutecode.oss-cn-beijing.aliyuncs.com/general/wzgc.jpg)
 
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
