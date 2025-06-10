@@ -452,15 +452,15 @@ git push origin --delete [标签名]
 
 * git stash list:查看stash存储列表
 
-* git stash show:显示文件级别的改动，默认show第一个存储，要显示其他存储:git stash show stash@{$num}
+* git stash show:显示文件级别的改动，默认show第一个存储，要显示其他存储:`git stash show stash@{$num}`
 
-* git stash show -p:显示内容级别的改动，默认show第一个存储，要显示其他存储:git stash show stash@{$num} -p
+* git stash show -p:显示内容级别的改动，默认show第一个存储，要显示其他存储:`git stash show stash@{$num} -p`
 
-* git stash apply:应用某个存储,但不会把存储从存储列表中删除，默认使用第一个存储,使用其他存储:git stash apply stash@{$num}
+* git stash apply:应用某个存储,但不会把存储从存储列表中删除，默认使用第一个存储,使用其他存储:`git stash apply stash@{$num}`
 
-* git stash pop:应用存储的同时将缓存堆栈中的对应stash删除，默认为第一个stash,应用并删除其他stash:git stash pop stash@{$num}
+* git stash pop:应用存储的同时将缓存堆栈中的对应stash删除，默认为第一个stash,应用并删除其他`git stash pop stash@{$num}`
 
-* git stash drop stash@{$num}:从列表中删除某个存储
+* `git stash drop stash@{$num}`:从列表中删除某个存储
 
 * git stash clear:删除所有缓存的stash
 
