@@ -6,7 +6,7 @@ tags: [node-server,docker,deploy]
 date: 2022-09-20T18:57
 ---
 
-参照[整合全栈持续集成](/docs/deploy/整合全栈Docker部署),完成前后端分离且不在同一项目目录的node-server中台独立部署
+参照[整合全栈持续集成](/deploy/整合全栈Docker部署),完成前后端分离且不在同一项目目录的node-server中台独立部署
 
 <!--truncate-->
 

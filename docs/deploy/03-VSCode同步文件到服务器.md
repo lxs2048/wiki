@@ -47,7 +47,7 @@ VSCode安装插件Deploy
 }
 ```
 
-秘钥保存到了`D:\\server\\CI`，获取秘钥[参考](/docs/deploy/CICD持续集成)
+秘钥保存到了`D:\\server\\CI`，获取秘钥[参考](/deploy/CICD持续集成)
 
 无秘钥可以使用password参数[vs-deploy](https://github.com/mkloubert/vs-deploy/wiki)
 

@@ -79,7 +79,7 @@ notes.conf中注释的部分表示如果请求接口以api开头就会删除api�
 
 本地配置完成后只需要将关键文件推送到服务器启动容器
 
-推送方法参考[VSCode同步文件到服务器](/docs/deploy/VSCode同步文件到服务器)
+推送方法参考[VSCode同步文件到服务器](/deploy/VSCode同步文件到服务器)
 
 这里配置如下
 

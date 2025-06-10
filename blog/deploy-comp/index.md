@@ -6,7 +6,7 @@ tags: [component_templates,docker,deploy]
 date: 2022-09-21T18:57
 ---
 
-参照[整合全栈持续集成](/docs/deploy/整合全栈Docker部署),完成前后端分离且不在同一项目目录的component_templates前台独立部署
+参照[整合全栈持续集成](/deploy/整合全栈Docker部署),完成前后端分离且不在同一项目目录的component_templates前台独立部署
 
 <!--truncate-->
 
@@ -159,7 +159,7 @@ server{
 }
 ```
 
-后续可以参考[整合全栈Docker部署](/docs/deploy/整合全栈Docker部署#10自动打包)不使用本地打包的方式，目前开发阶段不使用该方式更方便些
+后续可以参考[整合全栈Docker部署](/deploy/整合全栈Docker部署#10自动打包)不使用本地打包的方式，目前开发阶段不使用该方式更方便些
 
 最后附上截图
 
